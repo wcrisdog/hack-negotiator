@@ -28,6 +28,30 @@ def place_outbound_call(agent_id: str, to_number: str, dynamic_variables: dict) 
     return result.conversation_id
 
 
+def set_agent_dynamic_variables(agent_id: str, dynamic_variables: dict) -> None:
+    """Sets the agent's default dynamic-variable VALUES (not just a schema)
+    via `dynamic_variable_placeholders` -- verified against the installed
+    elevenlabs==2.58.0 SDK's ConversationalConfig. Any session that starts
+    without its own per-session dynamic_variables (e.g. a browser widget
+    opened with just an agent_id, no signed URL or client-side overrides)
+    falls back to these defaults. This is what makes the widget/human-in-
+    the-loop calling path (plan pivot: no Twilio number available) work
+    without needing to verify an unconfirmed client-side JS API for passing
+    per-session dynamic variables -- call this right before a persona opens
+    the widget page, exactly as scripts/run_demo.py's widget dispatch does.
+
+    Not safe to call concurrently for two different calls against the same
+    agent (it mutates a shared default) -- fine for a hackathon demo run
+    one call at a time, not for true parallel dispatch."""
+    from elevenlabs.client import ElevenLabs
+
+    client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"])
+    client.conversational_ai.agents.update(
+        agent_id=agent_id,
+        conversation_config={"agent": {"dynamic_variables": {"dynamic_variable_placeholders": dynamic_variables}}},
+    )
+
+
 def reconcile_missing_outcomes(stale_after_minutes: int = 30) -> list[str]:
     """Failure reconciliation (plan §2, §7.2, §11 Phase 3): any call still
     unreconciled after it should plausibly have ended gets a

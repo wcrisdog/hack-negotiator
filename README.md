@@ -51,17 +51,36 @@ curl http://localhost:8000/health
 # copy the printed agent IDs into .env as ELEVENLABS_{ESTIMATOR,CALLER,CLOSER}_AGENT_ID
 ```
 
-## Running the real-call demo (round 1 + round 2)
+## Running the demo calls (round 1 + round 2)
 
-Requires `ELEVENLABS_AGENT_PHONE_NUMBER_ID` (a Twilio number imported into
-the ElevenLabs dashboard) and `PERSONA_{TOUGH,LOWBALL,HARDSELL}_PHONE` env
-vars set to real, consenting phone numbers -- never dial a number without
-consent.
+**Primary path: ElevenLabs widget, human-in-the-loop (no phone number needed).**
+The original plan called for real Twilio PSTN calls, but Twilio's trial-
+account identity verification couldn't be completed, so the default demo
+mechanism is now the browser widget -- a valid setup per the challenge
+brief ("answer the calls yourself, playing different counterparts"). This
+only needs a working `ELEVENLABS_API_KEY` with `convai_write` scope.
+
+```bash
+.venv/bin/uvicorn app.main:app --reload   # keep running in one terminal
+.venv/bin/python scripts/seed_demo_job.py
+.venv/bin/python -c "from scripts.run_demo import dispatch_round_one_widget; dispatch_round_one_widget()"
+# open each printed http://localhost:8000/widget/?agent_id=... link, one at a
+# time, and answer as that persona (see personas/*.md)
+.venv/bin/python -c "from scripts.run_demo import dispatch_round_two_widget; dispatch_round_two_widget('persona_lowball')"
+.venv/bin/python scripts/reconcile_calls.py
+```
+
+**Stretch path: real Twilio PSTN calls.** `app.services.calling.place_outbound_call`
+and `scripts/run_demo.py`'s `dispatch_round_one`/`dispatch_round_two` still
+implement this and remain available if a Twilio number becomes available
+later. Requires `ELEVENLABS_AGENT_PHONE_NUMBER_ID` (a Twilio number
+imported into the ElevenLabs dashboard) and `PERSONA_{TOUGH,LOWBALL,HARDSELL}_PHONE`
+env vars set to real, consenting phone numbers -- never dial a number
+without consent.
 
 ```bash
 .venv/bin/python scripts/run_demo.py   # round 1: dispatches to all 3 personas
 .venv/bin/python -c "from scripts.run_demo import dispatch_round_two; dispatch_round_two('persona_lowball')"
-.venv/bin/python scripts/reconcile_calls.py
 ```
 
 ## Switching verticals (config, not code)
@@ -81,12 +100,17 @@ project, not yet started) and a couple of stretch-scope pieces noted below.
 
 ## Known blockers
 
-- **ElevenLabs API key lacks `convai_write` permission.** `agents/{estimator,caller,closer}.py`
+- **ElevenLabs API key lacks `convai_write` permission -- this is the one
+  hard blocker left for a live demo.** `agents/{estimator,caller,closer}.py`
   build configs that validate correctly against the real SDK
   (`elevenlabs==2.58.0`, verified against `/v1/convai/llm/list`), but
   `scripts/provision_agents.py` fails with a 401 until a key with
   Conversational AI write access is generated (ElevenLabs dashboard → API
   Keys → enable Conversational AI).
+- **Twilio trial account can't complete identity verification** -- real PSTN
+  calling is therefore parked as a stretch path (code still there, see
+  above). The MVP calling mechanism is now the ElevenLabs browser widget,
+  which needs no Twilio at all.
 - **`OPENAI_API_KEY` not set** -- `app/services/document_intake.py` and the
   LLM path in `app/services/narrative.py` raise/fall back accordingly. The
   narrative falls back to a deterministic template automatically; document
@@ -94,13 +118,12 @@ project, not yet started) and a couple of stretch-scope pieces noted below.
 - **`TAVILY_API_KEY` not set** -- `app/services/discovery.py`'s
   `TavilyDiscoveryProvider` will raise until it's set. Not on the critical
   path to the negotiation loop (plan §4.4).
-- **No Twilio phone number imported into ElevenLabs yet** -- needed for
-  `ELEVENLABS_AGENT_PHONE_NUMBER_ID` before any real outbound call can be
-  placed. `TWILIO_ACCOUNT_SID`/`TWILIO_CLIENT_SECRET` are set; the number
-  itself still needs importing via the ElevenLabs dashboard's Phone Numbers
-  tab.
-- **No persona phone numbers recruited yet** -- `PERSONA_*_PHONE` env vars
-  in `scripts/run_demo.py` are empty; three consenting people need to be
-  lined up before a real rehearsal (plan §8, §11 Phase 5).
-- **Lovable frontend not started** -- backend API is ready to be called
-  from it (`/jobs`, `/calls/dispatch`, `/jobs/{id}/report`).
+- **No persona humans recruited yet** -- three consenting people need to be
+  lined up to open the widget links and role-play (plan §8, §11 Phase 5).
+- **Lovable frontend built but decoupled from this backend** -- see the
+  frontend's own README note / prior conversation; it currently reads/writes
+  its own Supabase tables, not this FastAPI service.
+- **Frontend doesn't have a voice-widget or job-spec-confirm UI wired to
+  the real ElevenLabs agents/backend yet** -- Screens exist but call
+  Supabase directly; connecting to this backend's `/jobs`, `/calls/dispatch`,
+  `/jobs/{id}/report` endpoints (and this new `/widget/` page) is unstarted.

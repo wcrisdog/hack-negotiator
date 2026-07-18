@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>The Negotiator — Persona Call</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+    #status { font-weight: 600; }
+    #status.connected { color: #16a34a; }
+    #status.disconnected { color: #6b7280; }
+    #status.error { color: #dc2626; }
+    #log { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; height: 320px; overflow-y: auto; margin-top: 16px; font-size: 14px; }
+    #log p { margin: 4px 0; }
+    .agent { color: #1d4ed8; }
+    .user { color: #111827; }
+    button { padding: 8px 16px; margin-right: 8px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h2>The Negotiator — Persona Call</h2>
+  <p>
+    This page is how a human plays a counterparty (moving-company rep) in the
+    demo, since no real phone number is wired up yet (plan pivot: ElevenLabs
+    widget instead of Twilio). Open the URL a script printed for you, click
+    <strong>Start</strong>, allow microphone access, and talk to the agent as
+    your persona. Do not read a script -- react naturally.
+  </p>
+  <p>Agent: <code id="agent-id-display"></code></p>
+  <button id="start-btn">Start</button>
+  <button id="end-btn" disabled>End</button>
+  <p>Status: <span id="status" class="disconnected">not connected</span></p>
+  <div id="log"></div>
+
+  <script type="module">
+    // NOTE: this uses the exact Conversation.startSession shape documented
+    // in the bundled ElevenLabs agents skill (SKILL.md "Starting
+    // Conversations" section) for elevenlabs==2.58.0-era tooling. If
+    // @elevenlabs/client has since changed this API, check that doc or
+    // https://elevenlabs.io/docs/agents-platform/libraries/react (or the
+    // plain JS client) before assuming this page is broken.
+    import { Conversation } from "https://esm.sh/@elevenlabs/client";
+
+    const params = new URLSearchParams(window.location.search);
+    const agentId = params.get("agent_id");
+    document.getElementById("agent-id-display").textContent = agentId || "(missing ?agent_id=... in URL)";
+
+    const statusEl = document.getElementById("status");
+    const logEl = document.getElementById("log");
+    const startBtn = document.getElementById("start-btn");
+    const endBtn = document.getElementById("end-btn");
+
+    function log(cls, text) {
+      const p = document.createElement("p");
+      p.className = cls;
+      p.textContent = text;
+      logEl.appendChild(p);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    let conversation = null;
+
+    startBtn.addEventListener("click", async () => {
+      if (!agentId) {
+        statusEl.textContent = "missing agent_id";
+        statusEl.className = "error";
+        return;
+      }
+      try {
+        // Per-session dynamic variables aren't passed here -- the backend
+        // sets them as the agent's defaults (dynamic_variable_placeholders)
+        // right before you're given this link, via
+        // app.services.calling.set_agent_dynamic_variables. This avoids
+        // depending on an unverified client-side param name for the same
+        // thing.
+        conversation = await Conversation.startSession({
+          agentId,
+          onMessage: (msg) => log("agent", `Agent: ${msg.message ?? JSON.stringify(msg)}`),
+          onUserTranscript: (t) => log("user", `You: ${t.message ?? JSON.stringify(t)}`),
+          onError: (e) => {
+            statusEl.textContent = "error";
+            statusEl.className = "error";
+            log("agent", `Error: ${e}`);
+          },
+        });
+        statusEl.textContent = "connected";
+        statusEl.className = "connected";
+        startBtn.disabled = true;
+        endBtn.disabled = false;
+      } catch (e) {
+        statusEl.textContent = "failed to start";
+        statusEl.className = "error";
+        log("agent", `Failed to start: ${e}`);
+      }
+    });
+
+    endBtn.addEventListener("click", async () => {
+      if (conversation) {
+        await conversation.endSession();
+        conversation = null;
+      }
+      statusEl.textContent = "ended";
+      statusEl.className = "disconnected";
+      startBtn.disabled = false;
+      endBtn.disabled = true;
+    });
+  </script>
+</body>
+</html>
