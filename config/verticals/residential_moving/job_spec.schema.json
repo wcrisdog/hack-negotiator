@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "residential_moving.job_spec",
+  "type": "object",
+  "required": ["origin", "destination"],
+  "properties": {
+    "origin": {
+      "type": "object",
+      "required": ["city", "state"],
+      "properties": {
+        "city": {"type": "string"},
+        "state": {"type": "string"},
+        "unit_type": {"type": "string", "enum": ["apartment", "house", "condo"]},
+        "bedrooms": {"type": ["integer", "null"]},
+        "floor": {"type": ["integer", "null"]},
+        "elevator": {"type": ["boolean", "null"]},
+        "stairs_count": {"type": ["integer", "null"]},
+        "long_carry_ft": {"type": ["integer", "null"]}
+      }
+    },
+    "destination": {
+      "type": "object",
+      "required": ["city", "state"],
+      "properties": {
+        "city": {"type": "string"},
+        "state": {"type": "string"},
+        "unit_type": {"type": "string", "enum": ["apartment", "house", "condo"]},
+        "floor": {"type": ["integer", "null"]},
+        "elevator": {"type": ["boolean", "null"]}
+      }
+    },
+    "distance_miles": {"type": ["number", "null"]},
+    "move_date": {
+      "type": "object",
+      "properties": {
+        "preferred": {"type": ["string", "null"], "format": "date"},
+        "flexible_window_days": {"type": ["integer", "null"]}
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "properties": {
+        "rooms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "items"],
+            "properties": {
+              "name": {"type": "string"},
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["item", "quantity"],
+                  "properties": {
+                    "item": {"type": "string"},
+                    "quantity": {"type": "integer"},
+                    "fragile": {"type": "boolean"}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "boxes_estimate": {"type": ["integer", "null"]},
+        "special_items": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "services": {
+      "type": "object",
+      "properties": {
+        "packing": {"type": "string", "enum": ["requested", "not_requested", "unknown"]},
+        "disassembly_reassembly": {"type": "string", "enum": ["requested", "not_requested", "unknown"]},
+        "storage": {"type": "string", "enum": ["requested", "not_requested", "unknown"]},
+        "valuation_preference": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

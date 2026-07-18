@@ -1,0 +1,22 @@
+{
+  "vertical_id": "residential_moving",
+  "levers": [
+    {
+      "id": "competing_quote_leverage",
+      "hint": "Cite the best eligible competing total returned by get_best_quote_so_far — never a number that tool didn't return."
+    },
+    {
+      "id": "fee_waiver",
+      "target_categories": ["fuel_surcharge", "stair_fee", "long_carry_fee"],
+      "hint": "Ask to waive or reduce one specific fee line, not the total."
+    },
+    {
+      "id": "request_binding_estimate",
+      "hint": "Push a non_binding estimate_type toward binding."
+    },
+    {
+      "id": "date_flexibility_discount",
+      "hint": "Offer the confirmed move_date.flexible_window_days as a bargaining chip if the business has schedule gaps."
+    }
+  ]
+}

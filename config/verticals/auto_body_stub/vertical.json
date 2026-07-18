@@ -1,0 +1,14 @@
+{
+  "vertical_id": "auto_body",
+  "display_name": "Auto Body Repair",
+  "document_types": ["existing_estimate_pdf"],
+  "benchmark_references": [],
+  "below_market_rule": {
+    "comparison": "other_complete_quotes_median",
+    "threshold_ratio": 0.70,
+    "minimum_peer_quotes": 2,
+    "completeness_floor": 0.5,
+    "fallback_if_insufficient_peers": "insufficient_comparison_data"
+  },
+  "note": "P1 config smoke test only (plan §3.3, §11 Phase 5) -- proves the pipeline is config-driven, not that this vertical is fully built out. No job_spec.schema.json/quote_taxonomy.json yet; do not dispatch real calls against this vertical."
+}

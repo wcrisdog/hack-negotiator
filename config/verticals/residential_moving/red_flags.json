@@ -1,0 +1,19 @@
+{
+  "vertical_id": "residential_moving",
+  "rules": [
+    {
+      "id": "below_market_30pct",
+      "severity": "warning",
+      "logic": "candidate_total < 0.70 * median(eligible_peer_totals)",
+      "minimum_peer_quotes": 2,
+      "fallback_if_insufficient_peers": "insufficient_comparison_data",
+      "message": "30%+ below the peer median for this job — treat as a warning, not a win. Ask what's excluded before trusting it."
+    },
+    {
+      "id": "non_binding_estimate",
+      "severity": "warning",
+      "logic": "estimate_type == 'non_binding'",
+      "message": "Non-binding estimates carry more risk of a final bill exceeding the quote."
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "vertical_id": "residential_moving",
+  "source": "team-defined for this build, not attributed to the challenge brief",
+  "fee_categories": [
+    "base_labor_or_linehaul",
+    "travel_or_truck_fee",
+    "fuel_surcharge",
+    "stair_fee",
+    "long_carry_fee",
+    "packing_labor_and_materials",
+    "disassembly_reassembly",
+    "valuation_coverage",
+    "deposit_and_cancellation_terms",
+    "taxes_or_mandatory_charges"
+  ],
+  "allowed_statuses": ["quoted", "included", "not_applicable", "unknown", "refused"]
+}

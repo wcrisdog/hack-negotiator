@@ -1,0 +1,21 @@
+{
+  "vertical_id": "residential_moving",
+  "display_name": "Residential Moving",
+  "document_types": ["existing_quote_pdf"],
+  "benchmark_references": [
+    {
+      "id": "challenge_brief_rock_hill_charlotte",
+      "use": "pain_statement_only",
+      "low": 1158,
+      "high": 6506,
+      "notes": "The brief does not provide a median or enough service detail to use this range as a direct estimate for every demo specification. Used only in narrative/pitch context, never as a red-flag threshold."
+    }
+  ],
+  "below_market_rule": {
+    "comparison": "other_complete_quotes_median",
+    "threshold_ratio": 0.70,
+    "minimum_peer_quotes": 2,
+    "completeness_floor": 0.5,
+    "fallback_if_insufficient_peers": "insufficient_comparison_data"
+  }
+}

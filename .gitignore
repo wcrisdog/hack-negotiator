@@ -4,3 +4,20 @@
 # Ignore Python virtual environments
 .venv/
 venv/
+
+# Ignore environment variables file
+.env
+submission.md
+
+# Ignore Claude and Agents directories
+.claude/
+.agents/
+
+# Ignore example script
+example.py
+
+# Ignore local data/db/recordings and test cache
+data/
+__pycache__/
+*.pyc
+.pytest_cache/
